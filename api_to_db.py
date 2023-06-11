@@ -57,7 +57,7 @@ price_data = pd.DataFrame({"Zeitpunkt" : [pd.to_datetime("now")],
 HOST = ""
 USER = ""
 PASSWORD = ""
-DATABASE = ""
+DATABASE = "objective_price_project"
 
 
 # Greife auf DB zu oder erstelle diese
