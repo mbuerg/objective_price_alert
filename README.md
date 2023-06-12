@@ -17,3 +17,5 @@ Thus an email is sent.
 The script also has a real world example with Bitcoin. The current price is not significantly low. In this case no email is sent.
 
 ![btc](https://github.com/mbuerg/objective_price_alert/assets/106337257/6e24cbef-e92d-47f6-b68f-bae5abf86fae)
+
+BTC Data Scource: https://finance.yahoo.com/quote/BTC-USD/history/
