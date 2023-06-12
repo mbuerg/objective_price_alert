@@ -7,7 +7,10 @@
 import pandas as pd
 import mysql.connector
 import requests
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # %%
 
@@ -17,26 +20,24 @@ import requests
 # man benötigt die URL der api
 # Spezifikationen des Produkts, also asin und location
 # host und den API Key
-# In diesem Beispiel handelt es sich um die Harry Potter Bücher.
-# Die Auswahl dieses Beispiels hat keinen tieferen Sinn
 
-URL = "https://amazon-product-price-data.p.rapidapi.com/product"
-QUERYSTRING = {"asins":"0545162076","locale":"US"}
-HOST = "amazon-product-price-data.p.rapidapi.com"
-API_KEY = ""
+URL = os.getenv("URL")
+ASINS = os.getenv("ASINS")
+LOCALE = os.getenv("LOCALE")
+QUERYSTRING = {"asins": ASINS, "locale": LOCALE}
+API_HOST = os.getenv("API_HOST")
+API_KEY = os.getenv("API_KEY")
 
 # Erstelle ein dict für das request
 HEADERS = {
-	"X-RapidAPI-Host": HOST,
+	"X-RapidAPI-Host": API_HOST,
 	"X-RapidAPI-Key": API_KEY
 }
 
 # requeste Daten
 response = requests.request("GET", URL, headers = HEADERS, params = QUERYSTRING)
 
-# response.json()  enthält alle verfügbaren Daten des Produkts zum Zeitpunkt des requests
-
-# response output = 200, falls es geklappt hat
+#print(response)
 
 
 # %%
@@ -46,7 +47,7 @@ price_data = pd.DataFrame({"Zeitpunkt" : [pd.to_datetime("now")],
                      response.json()[0]["product_name"] : 
                          [response.json()[0]["current_price"]]})
 
-#print(price_data)
+print(price_data)
 
 
 # %%
@@ -54,16 +55,17 @@ price_data = pd.DataFrame({"Zeitpunkt" : [pd.to_datetime("now")],
 # Zuerst muss man eventuell einen user erstellen
 
 # Konstanten für Zugriff auf DB
-HOST = ""
-USER = ""
-PASSWORD = ""
-DATABASE = "objective_price_project"
+DB_HOST = os.getenv("DB_HOST")
+USER = os.getenv("USER")
+PASSWORD = os.getenv("PASSWORD")
+DATABASE = os.getenv("DATABASE")
+TABLE = os.getenv("TABLE")
 
 
 # Greife auf DB zu oder erstelle diese
 try:
     mydb = mysql.connector.connect(
-        host = HOST,
+        host = DB_HOST,
         user = USER,
         password = PASSWORD,
         database = DATABASE
@@ -71,41 +73,40 @@ try:
     
 except:
     mydb = mysql.connector.connect(
-        host = HOST,
+        host = DB_HOST,
         user = USER,
         password = PASSWORD
         )
     mycursor = mydb.cursor()
-    mycursor.execute("CREATE DATABASE objective_price_project")
+    mycursor.execute(f"CREATE DATABASE {DATABASE}")
     
     mydb = mysql.connector.connect(
-        host = HOST,
+        host = DB_HOST,
         user = USER,
         password = PASSWORD,
         database = DATABASE
         )
 
-# rufe die table "prices" auf bzw erstelle sie, falls nicht vorhanden
+# rufe die table auf bzw erstelle sie, falls nicht vorhanden
 try:
     mycursor = mydb.cursor()
     mycursor.execute("SELECT * FROM objective_price_project.prices")
     
 except:
     mycursor = mydb.cursor()
-    mycursor.execute("""CREATE TABLE objective_price_project.prices (date DATE, 
-                     price FLOAT )""") 
+    mycursor.execute(f"CREATE TABLE {DATABASE}.{TABLE} (date DATE, price FLOAT )") 
     
     mycursor = mydb.cursor()
-    mycursor.execute("SELECT * FROM objective_price_project.prices")
+    mycursor.execute(f"SELECT * FROM {DATABASE}.{TABLE}")
 
     
 myresult = mycursor.fetchall()
 
-# print(myresult) 
+#print(myresult) 
 
 
 mycursor = mydb.cursor()
-mycursor.execute(f"""INSERT INTO objective_price_project.prices 
+mycursor.execute(f"""INSERT INTO {DATABASE}.{TABLE} 
                  VALUES('{price_data['Zeitpunkt'][0].date()}', 
                         {price_data.iloc[0, 1]})""")
 
