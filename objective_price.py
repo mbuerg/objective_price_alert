@@ -6,25 +6,29 @@ import matplotlib.pyplot as plt
 import smtplib
 from statsmodels.tsa.stattools import adfuller
 from email.message import EmailMessage
+import os
+from dotenv import load_dotenv
 pd.set_option('display.max_columns', None)
+load_dotenv()
 
 # %%
 # Ziehe Daten aus der Datenbank
 
 # Konstanten für Zugriff auf DB
-HOST = ""
-USER = ""
-PASSWORD = ""
-DATABASE = "objective_price_project"
+DB_HOST = os.getenv("DB_HOST")
+DB_USER = os.getenv("DB_USER")
+PASSWORD = os.getenv("PASSWORD")
+DATABASE = os.getenv("DATABASE")
+TABLE = os.getenv("TABLE")
 
 mydb = mysql.connector.connect(
-    host = HOST,
-    user = USER,
+    host = DB_HOST,
+    user = DB_USER,
     password = PASSWORD,
     database = DATABASE)
 
 mycursor = mydb.cursor()
-mycursor.execute("SELECT * FROM objective_price_project.prices ")
+mycursor.execute(f"SELECT * FROM {DATABASE}.{TABLE}")
 myresult = mycursor.fetchall()
 mydb.close()
 
@@ -129,12 +133,11 @@ sig_columns = [sig for sig in list(price_series.columns) if len(sig) > 6]
 # Falls mindestens eine der Differenzenfolgen auf einen objektiv günstigen
 # Preis hinweist, dann verschicke eine email.
 if tschebyscheff[sig_columns].iloc[-1].any():
-    # Beispiel, falls von hotmail eine mail geschickt werden soll
-    PORT = 587
-    SERVER = "smtp-mail.outlook.com"
-    EMAIL_ADDRESS = ""
-    EMAIL_ADDRESS_REC = ""
-    PASSWORD = ""
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
+    EMAIL_SERVER = os.getenv("EMAIL_SERVER")
+    EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+    EMAIL_ADDRESS_REC = os.getenv("EMAIL_ADDRESS_REC")
+    EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
     msg = EmailMessage()
     msg["Subject"] = "Preis ist objektiv guenstig"
@@ -146,7 +149,7 @@ if tschebyscheff[sig_columns].iloc[-1].any():
         f"${price_series['diff_0'].iloc[-1]}!")
 
 
-    with smtplib.SMTP(SERVER, PORT) as server:
+    with smtplib.SMTP(EMAIL_SERVER, EMAIL_PORT) as server:
         server.starttls()
         server.login(EMAIL_ADDRESS,
                      PASSWORD)
