@@ -6,6 +6,7 @@ This project consists of the following:
 
 The "objective_price_example.py" script shows an example of the logic. It basically works like this:
 If price or change in price or change in change in price are low compared to it´s former values the price is objectively low. Think of it as derivatives just in a discrete manner.
+In order to achieve this the time series is differentiated until stationarity is achieved (max order 2). Then Tschebyscheff´s inequality is used to determine, if the current values are low.
 
 The example in the script is significantly low in it´s price and the first order derivative and can thus be seen as "objectively low".
 
