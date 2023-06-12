@@ -152,7 +152,7 @@ if tschebyscheff[sig_columns].iloc[-1].any():
     with smtplib.SMTP(EMAIL_SERVER, EMAIL_PORT) as server:
         server.starttls()
         server.login(EMAIL_ADDRESS,
-                     PASSWORD)
+                     EMAIL_PASSWORD)
         server.sendmail(EMAIL_ADDRESS,
                         EMAIL_ADDRESS_REC,
                         msg.as_string())
