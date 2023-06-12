@@ -113,12 +113,13 @@ tschebyscheff = calculate_tschebyscheff(data = price_series, k = 4.5)
 # %%
 # Daten visualisieren
 
-amount_columns = len(diff_columns)
-fig, ax = plt.subplots(amount_columns)
-fig.tight_layout()
-for i, ax in enumerate(fig.axes):
-    ax.plot(price_series[diff_columns].iloc[:, i])
-    ax.set_title(f"{diff_columns[i]}")
+if __name__ == "__main__":
+    amount_columns = len(diff_columns)
+    fig, ax = plt.subplots(amount_columns)
+    fig.tight_layout()
+    for i, ax in enumerate(fig.axes):
+        ax.plot(price_series[diff_columns].iloc[:, i])
+        ax.set_title(f"{diff_columns[i]}")
 
 # %%
 # email verschicken, falls mindestens eine diff signifikant
@@ -128,28 +129,30 @@ sig_columns = [sig for sig in list(price_series.columns) if len(sig) > 6]
 
 # Falls mindestens eine der Differenzenfolgen auf einen objektiv günstigen
 # Preis hinweist, dann verschicke eine email.
-if tschebyscheff[sig_columns].iloc[-1].any():
-    EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
-    EMAIL_SERVER = os.getenv("EMAIL_SERVER")
-    EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
-    EMAIL_ADDRESS_REC = os.getenv("EMAIL_ADDRESS_REC")
-    EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
-    msg = EmailMessage()
-    msg["Subject"] = "Preis ist objektiv guenstig"
-    msg["From"] = EMAIL_ADDRESS
-    msg["To"] = EMAIL_ADDRESS_REC
-        
-    msg.set_content(
-        "Hallo, der Preis ist momentan objektiv niedrig mit " \
-        f"${price_series['diff_0'].iloc[-1]}!")
+if __name__ == "__main__":
+    if tschebyscheff[sig_columns].iloc[-1].any():
+        EMAIL_PORT = int(os.getenv("EMAIL_PORT"))
+        EMAIL_SERVER = os.getenv("EMAIL_SERVER")
+        EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+        EMAIL_ADDRESS_REC = os.getenv("EMAIL_ADDRESS_REC")
+        EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
+        msg = EmailMessage()
+        msg["Subject"] = "Preis ist objektiv guenstig"
+        msg["From"] = EMAIL_ADDRESS
+        msg["To"] = EMAIL_ADDRESS_REC
+            
+        msg.set_content(
+            "Hallo, der Preis ist momentan objektiv niedrig mit " \
+            f"${price_series['diff_0'].iloc[-1]}!")
 
 
-    with smtplib.SMTP(EMAIL_SERVER, EMAIL_PORT) as server:
-        server.starttls()
-        server.login(EMAIL_ADDRESS,
-                     EMAIL_PASSWORD)
-        server.sendmail(EMAIL_ADDRESS,
-                        EMAIL_ADDRESS_REC,
-                        msg.as_string())
+        with smtplib.SMTP(EMAIL_SERVER, EMAIL_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_ADDRESS,
+                        EMAIL_PASSWORD)
+            server.sendmail(EMAIL_ADDRESS,
+                            EMAIL_ADDRESS_REC,
+                            msg.as_string())
 
