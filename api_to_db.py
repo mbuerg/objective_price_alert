@@ -21,10 +21,10 @@ load_dotenv()
 # Spezifikationen des Produkts, also asin und location
 # host und den API Key
 
-URL = os.getenv("URL")
-ASINS = os.getenv("ASINS")
-LOCALE = os.getenv("LOCALE")
-QUERYSTRING = {"asins": ASINS, "locale": LOCALE}
+API_URL = os.getenv("API_URL")
+API_ASINS = os.getenv("API_ASINS")
+API_LOCALE = os.getenv("API_LOCALE")
+API_QUERYSTRING = {"asins": API_ASINS, "locale": API_LOCALE}
 API_HOST = os.getenv("API_HOST")
 API_KEY = os.getenv("API_KEY")
 
@@ -35,7 +35,7 @@ HEADERS = {
 }
 
 # requeste Daten
-response = requests.request("GET", URL, headers = HEADERS, params = QUERYSTRING)
+response = requests.request("GET", API_URL, headers = HEADERS, params = API_QUERYSTRING)
 
 #print(response)
 
@@ -56,35 +56,35 @@ print(price_data)
 
 # Konstanten für Zugriff auf DB
 DB_HOST = os.getenv("DB_HOST")
-USER = os.getenv("USER")
-PASSWORD = os.getenv("PASSWORD")
-DATABASE = os.getenv("DATABASE")
-TABLE = os.getenv("TABLE")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_DATABASE = os.getenv("DB_DATABASE")
+DB_TABLE = os.getenv("DB_TABLE")
 
 
 # Greife auf DB zu oder erstelle diese
 try:
     mydb = mysql.connector.connect(
         host = DB_HOST,
-        user = USER,
-        password = PASSWORD,
-        database = DATABASE
+        user = DB_USER,
+        password = DB_PASSWORD,
+        database = DB_DATABASE
         )
     
 except:
     mydb = mysql.connector.connect(
         host = DB_HOST,
-        user = USER,
-        password = PASSWORD
+        user = DB_USER,
+        password = DB_PASSWORD
         )
     mycursor = mydb.cursor()
-    mycursor.execute(f"CREATE DATABASE {DATABASE}")
+    mycursor.execute(f"CREATE DATABASE {DB_DATABASE}")
     
     mydb = mysql.connector.connect(
         host = DB_HOST,
-        user = USER,
-        password = PASSWORD,
-        database = DATABASE
+        user = DB_USER,
+        password = DB_PASSWORD,
+        database = DB_DATABASE
         )
 
 # rufe die table auf bzw erstelle sie, falls nicht vorhanden
@@ -94,10 +94,10 @@ try:
     
 except:
     mycursor = mydb.cursor()
-    mycursor.execute(f"CREATE TABLE {DATABASE}.{TABLE} (date DATE, price FLOAT )") 
+    mycursor.execute(f"CREATE TABLE {DB_DATABASE}.{DB_TABLE} (date DATE, price FLOAT )") 
     
     mycursor = mydb.cursor()
-    mycursor.execute(f"SELECT * FROM {DATABASE}.{TABLE}")
+    mycursor.execute(f"SELECT * FROM {DB_DATABASE}.{DB_TABLE}")
 
     
 myresult = mycursor.fetchall()
@@ -106,7 +106,7 @@ myresult = mycursor.fetchall()
 
 
 mycursor = mydb.cursor()
-mycursor.execute(f"""INSERT INTO {DATABASE}.{TABLE} 
+mycursor.execute(f"""INSERT INTO {DB_DATABASE}.{DB_TABLE} 
                  VALUES('{price_data['Zeitpunkt'][0].date()}', 
                         {price_data.iloc[0, 1]})""")
 

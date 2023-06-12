@@ -17,18 +17,18 @@ load_dotenv()
 # Konstanten für Zugriff auf DB
 DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")
-PASSWORD = os.getenv("PASSWORD")
-DATABASE = os.getenv("DATABASE")
-TABLE = os.getenv("TABLE")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_DATABASE = os.getenv("DB_DATABASE")
+DB_TABLE = os.getenv("DB_TABLE")
 
 mydb = mysql.connector.connect(
     host = DB_HOST,
     user = DB_USER,
-    password = PASSWORD,
-    database = DATABASE)
+    password = DB_PASSWORD,
+    database = DB_DATABASE)
 
 mycursor = mydb.cursor()
-mycursor.execute(f"SELECT * FROM {DATABASE}.{TABLE}")
+mycursor.execute(f"SELECT * FROM {DB_DATABASE}.{DB_TABLE}")
 myresult = mycursor.fetchall()
 mydb.close()
 
