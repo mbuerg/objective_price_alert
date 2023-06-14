@@ -119,7 +119,7 @@ tschebyscheff = calculate_tschebyscheff(data = price_series, k = 4.5)
 # %%
 # Daten visualisieren
 
-def main_visualization():
+def visualization():
     amount_columns = len(diff_columns)
     fig, ax = plt.subplots(amount_columns)
     fig.tight_layout()
@@ -130,7 +130,7 @@ def main_visualization():
 # %%
 # email verschicken, falls mindestens eine diff signifikant
 
-def main_email():
+def email():
     # Namen der Signifikanz-Spalten
     sig_columns = [sig for sig in list(price_series.columns) if len(sig) > 6]
     # Falls mindestens eine der Differenzenfolgen auf einen objektiv günstigen
@@ -162,6 +162,9 @@ def main_email():
 
 # %%
 
+def main():
+    visualization()
+    email()
+
 if __name__ == "__main__":
-    main_visualization()
-    main_email()
+    main()
