@@ -1,7 +1,7 @@
 # %%
 import mysql.connector
+
 import pandas as pd
-#import numpy as np
 import matplotlib.pyplot as plt
 import smtplib
 from statsmodels.tsa.stattools import adfuller
@@ -32,14 +32,13 @@ mycursor.execute(f"SELECT * FROM {DB_DATABASE}.{DB_TABLE}")
 myresult = mycursor.fetchall()
 mydb.close()
 
-price_series = pd.DataFrame(myresult).loc[:,1]
-#print(price_series)
+from datetime import date
+price_series = pd.DataFrame(myresult)#.loc[:,1]
+price_series = price_series.rename({1: "diff_0"}, axis = 1)
+#zahl = pd.DataFrame({0: [date.today()], "diff_0": [40]})
+#price_series = pd.concat([price_series, zahl]) zum Testen, falls alle Werte konstanten sind
+print(price_series)
 
-# %%
-# Testen, ob stationär
-
-adf_test_result = adfuller(price_series["diff_0"])
-#print(adf_test_result)
 
 # %%
 # Eventuell stationär machen, falls der p-Wert des ADF-Tests größer 5% ist
@@ -53,11 +52,14 @@ order = 1 # Ordnung der Differenzierung
 adf_test_result = adfuller(price_series.iloc[:,-1])
 while adf_test_result[1] > 0.05 and order <= 2:
     price_series[f"diff_{order}"] = price_series.iloc[:,-1].diff(1)
-    price_series = price_series.fillna(price_series.mean())
+    price_series = price_series \
+                   .fillna(price_series[f"diff_{order}"].mean())
     adf_test_result = adfuller(price_series.iloc[:,-1])
     order += 1
 
-#print(adf_test_result)
+print(adf_test_result)
+
+price_series = price_series.set_index(0)
 
 # order <=2 verhindert, dass die Schleife unendlich laufen kann, des Weiteren
 # wird mit jeder höheren Ordnung die Differenzenfolge schwieriger zu interpretieren
@@ -92,6 +94,7 @@ for cols in range(0, price_series.shape[1]):
 # Die Spalten für die Differenzenfolgen werden für die folgende Funktion 
 # und für das Plotten benötigt
 diff_columns = [diff for diff in list(price_series.columns) if len(diff) == 6]
+
 
 # Funktion zum Berechnen, ob der aktuelle Preis "objektiv günstig" ist
 def calculate_tschebyscheff(data:"pd.Series", k:"int"=4.5, l:"int"=None) -> "pd.DataFrame":

@@ -35,6 +35,7 @@ HEADERS = {
 }
 
 # requeste Daten
+
 response = requests.request("GET", API_URL, headers = HEADERS, params = API_QUERYSTRING)
 
 #print(response)
@@ -47,7 +48,7 @@ price_data = pd.DataFrame({"Zeitpunkt" : [pd.to_datetime("now")],
                      response.json()[0]["product_name"] : 
                          [response.json()[0]["current_price"]]})
 
-print(price_data)
+#print(price_data)
 
 
 # %%
@@ -63,52 +64,64 @@ DB_TABLE = os.getenv("DB_TABLE")
 
 
 # Greife auf DB zu oder erstelle diese
-try:
-    mydb = mysql.connector.connect(
-        host = DB_HOST,
-        user = DB_USER,
-        password = DB_PASSWORD,
-        database = DB_DATABASE
-        )
-    
-except:
-    mydb = mysql.connector.connect(
-        host = DB_HOST,
-        user = DB_USER,
-        password = DB_PASSWORD
-        )
-    mycursor = mydb.cursor()
-    mycursor.execute(f"CREATE DATABASE {DB_DATABASE}")
-    
-    mydb = mysql.connector.connect(
-        host = DB_HOST,
-        user = DB_USER,
-        password = DB_PASSWORD,
-        database = DB_DATABASE
-        )
+def access_database():
+    try:
+        mydb = mysql.connector.connect(
+            host = DB_HOST,
+            user = DB_USER,
+            password = DB_PASSWORD,
+            database = DB_DATABASE
+            )
+        
+    except:
+        mydb = mysql.connector.connect(
+            host = DB_HOST,
+            user = DB_USER,
+            password = DB_PASSWORD
+            )
+        mycursor = mydb.cursor()
+        mycursor.execute(f"CREATE DATABASE {DB_DATABASE}")
+        
+        mydb = mysql.connector.connect(
+            host = DB_HOST,
+            user = DB_USER,
+            password = DB_PASSWORD,
+            database = DB_DATABASE
+            )
+    return mydb
 
 # rufe die table auf bzw erstelle sie, falls nicht vorhanden
-try:
-    mycursor = mydb.cursor()
-    mycursor.execute("SELECT * FROM objective_price_project.prices")
-    
-except:
-    mycursor = mydb.cursor()
-    mycursor.execute(f"CREATE TABLE {DB_DATABASE}.{DB_TABLE} (date DATE, price FLOAT )") 
-    
-    mycursor = mydb.cursor()
-    mycursor.execute(f"SELECT * FROM {DB_DATABASE}.{DB_TABLE}")
+def access_table():
+    mydb = access_database()
+    try:
+        mycursor = mydb.cursor()
+        mycursor.execute(f"SELECT * FROM {DB_DATABASE}.{DB_TABLE}")
+        
+    except:
+        mycursor = mydb.cursor()
+        mycursor.execute(f"CREATE TABLE {DB_DATABASE}.{DB_TABLE} (date DATE, price FLOAT )") 
+        
+        mycursor = mydb.cursor()
+        mycursor.execute(f"SELECT * FROM {DB_DATABASE}.{DB_TABLE}")
+    #return mycursor
 
-    
-myresult = mycursor.fetchall()
 
+#myresult = access_table().fetchall()
 #print(myresult) 
 
+def write_into_table():
+    mydb = access_database()
+    mycursor = mydb.cursor()
+    mycursor.execute(f"""INSERT INTO {DB_DATABASE}.{DB_TABLE} 
+                    VALUES('{price_data['Zeitpunkt'][0].date()}', 
+                            {price_data.iloc[0, 1]})""")
+    mydb.commit()
+    mydb.close()
+    
+def main():
+    access_database()
+    access_table()
+    write_into_table()
 
-mycursor = mydb.cursor()
-mycursor.execute(f"""INSERT INTO {DB_DATABASE}.{DB_TABLE} 
-                 VALUES('{price_data['Zeitpunkt'][0].date()}', 
-                        {price_data.iloc[0, 1]})""")
-
-mydb.commit()
-mydb.close()
+if __name__ == "__main__":
+    main()
