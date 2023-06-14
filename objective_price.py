@@ -32,9 +32,10 @@ mycursor.execute(f"SELECT * FROM {DB_DATABASE}.{DB_TABLE}")
 myresult = mycursor.fetchall()
 mydb.close()
 
-from datetime import date
+
 price_series = pd.DataFrame(myresult)#.loc[:,1]
 price_series = price_series.rename({1: "diff_0"}, axis = 1)
+#from datetime import date
 #zahl = pd.DataFrame({0: [date.today()], "diff_0": [40]})
 #price_series = pd.concat([price_series, zahl]) zum Testen, falls alle Werte konstanten sind
 print(price_series)
